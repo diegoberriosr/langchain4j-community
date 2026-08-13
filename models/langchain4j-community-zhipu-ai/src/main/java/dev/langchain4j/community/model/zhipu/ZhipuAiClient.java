@@ -22,6 +22,8 @@ import dev.langchain4j.community.model.zhipu.image.ImageRequest;
 import dev.langchain4j.community.model.zhipu.image.ImageResponse;
 import dev.langchain4j.community.model.zhipu.shared.ErrorResponse;
 import dev.langchain4j.community.model.zhipu.shared.Usage;
+import dev.langchain4j.community.model.zhipu.tokenizer.TokenizerRequest;
+import dev.langchain4j.community.model.zhipu.tokenizer.TokenizerResponse;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.exception.HttpException;
 import dev.langchain4j.http.client.HttpClient;
@@ -125,6 +127,33 @@ class ZhipuAiClient {
             logHttpException(e);
             throw new RuntimeException(e);
         }
+    }
+
+    TokenizerResponse tokenizer(TokenizerRequest request) {
+        HttpRequest httpRequest = HttpRequest.builder()
+                .url(baseUrl, "api/paas/v4/tokenizer")
+                .method(POST)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", getToken(apiKey))
+                .body(Json.toJson(request))
+                .build();
+
+        SuccessfulHttpResponse successfulHttpResponse;
+        try {
+            successfulHttpResponse = httpClient.execute(httpRequest);
+        } catch (HttpException e) {
+            throw toZhipuAiException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        TokenizerResponse response = Json.fromJson(successfulHttpResponse.body(), TokenizerResponse.class);
+        if (response.getError() != null) {
+            throw new ZhipuAiException(
+                    response.getError().get("code"), response.getError().get("message"));
+        }
+
+        return response;
     }
 
     private void logHttpException(HttpException e) {
