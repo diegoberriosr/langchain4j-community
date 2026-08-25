@@ -57,6 +57,16 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
 
     @Override
     protected List<ChatModel> models() {
+        if (chatModel == null) {
+            chatModel = XinferenceChatModel.builder()
+                    .baseUrl(baseUrl())
+                    .modelName(modelName())
+                    .apiKey(apiKey())
+                    .temperature(0.0)
+                    .logRequests(true)
+                    .logResponses(true)
+                    .build();
+        }
         return singletonList(chatModel);
     }
 
