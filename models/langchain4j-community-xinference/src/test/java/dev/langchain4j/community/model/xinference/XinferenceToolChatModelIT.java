@@ -21,12 +21,18 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastructure {
 
+    static ObjectMapper MAPPER = new ObjectMapper();
+
+    static String CALL_ONE_TOOL_AT_A_TIME =
+            "Call one tool at a time and wait for its result, never call multiple tools in parallel.";
+
     ToolSpecification weatherToolSpecification = ToolSpecification.builder()
             .name("get_current_weather")
-            .description("returns a sum of two numbers")
+            .description("Fetches the current weather of specific location")
             .parameters(JsonObjectSchema.builder()
                     .addEnumProperty(
                             "format",
@@ -71,7 +77,7 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
     }
 
     @Test
-    void should_execute_a_tool_then_answer() {
+    void should_execute_a_tool_then_answer() throws Exception {
 
         // given
         UserMessage userMessage = userMessage("What is the weather today in Paris?");
@@ -91,8 +97,8 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
         ToolExecutionRequest toolExecutionRequest =
                 aiMessage.toolExecutionRequests().get(0);
         assertThat(toolExecutionRequest.name()).isEqualTo("get_current_weather");
-        assertThat(toolExecutionRequest.arguments())
-                .isEqualToIgnoringWhitespace("{\"format\": \"celsius\", \"location\": \"Paris\"}");
+        assertThat(MAPPER.readTree(toolExecutionRequest.arguments()))
+                .isEqualTo(MAPPER.readTree("{\"format\": \"celsius\", \"location\": \"Paris\"}"));
 
         // given
         ToolExecutionResultMessage toolExecutionResultMessage = from(
@@ -105,7 +111,7 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
         // then
         AiMessage secondAiMessage = secondResponse.aiMessage();
         assertThat(secondAiMessage.text()).contains("32");
-        assertThat(secondAiMessage.toolExecutionRequests()).isNull();
+        assertThat(secondAiMessage.toolExecutionRequests()).isEmpty();
     }
 
     @Test
@@ -124,7 +130,7 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
         // then
         AiMessage aiMessage = response.aiMessage();
         assertThat(aiMessage.text()).isNotNull();
-        assertThat(aiMessage.toolExecutionRequests()).isNull();
+        assertThat(aiMessage.toolExecutionRequests()).isEmpty();
     }
 
     @Test
@@ -145,19 +151,8 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
         });
     }
 
-    // FIXME: langchain4j upstream remove 'protected'
-
-    //    @Test
-    //    @Disabled("Not supported yet.")
-    //    @Override
-    //    protected void should_execute_tool_with_pojo_with_primitives() {
-    //        super.should_execute_tool_with_pojo_with_primitives();
-    //    }
-    //
-    //    @Test
-    //    @Disabled("The support isn't great, and there are cases where it fails.")
-    //    @Override
-    //    protected void should_execute_tool_with_map_parameter() {
-    //        super.should_execute_tool_with_map_parameter();
-    //    }
+    @Override
+    public String adaptPrompt1(String prompt) {
+        return prompt + CALL_ONE_TOOL_AT_A_TIME;
+    }
 }
