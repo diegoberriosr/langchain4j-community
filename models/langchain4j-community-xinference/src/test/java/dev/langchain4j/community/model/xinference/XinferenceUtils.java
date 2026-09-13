@@ -28,7 +28,7 @@ public class XinferenceUtils {
             put(
                     CHAT_MODEL_NAME,
                     String.format(
-                            "xinference launch --model-engine Transformers --model-name %s --size-in-billions 0_6 --model-format pytorch --quantization none",
+                            "xinference launch --model-engine Transformers --model-name %s --size-in-billions 8 --model-format gptq --quantization Int4",
                             CHAT_MODEL_NAME));
             put(
                     GENERATE_MODEL_NAME,
