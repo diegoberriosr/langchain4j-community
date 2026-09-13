@@ -27,8 +27,11 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
 
     static ObjectMapper MAPPER = new ObjectMapper();
 
-    static String CALL_ONE_TOOL_AT_A_TIME =
-            "Call one tool at a time and wait for its result, never call multiple tools in parallel.";
+    static final String CALL_ONE_TOOL_AT_A_TIME =
+            " Call one tool at a time and wait for its result, never call multiple tools in parallel.";
+
+    static final String ALWAYS_USE_AVAILABLE_TOOLS_TO_CALCULATE_THE_ANSWER =
+            " Always use available tools to calculate the answer.";
 
     ToolSpecification weatherToolSpecification = ToolSpecification.builder()
             .name("get_current_weather")
@@ -39,6 +42,7 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
                             List.of("celsius", "fahrenheit"),
                             "The format to return the weather in, e.g. 'celsius' or 'fahrenheit'")
                     .addStringProperty("location", "The location to get the weather for, e.g. San Francisco, CA")
+                    .required("format", "celsius")
                     .build())
             .build();
 
@@ -47,7 +51,7 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
             .description("Get the current time")
             .build();
 
-    ChatModel chatModel;
+    static ChatModel chatModel;
 
     @BeforeEach
     public void beforeEach() {
@@ -69,6 +73,7 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
                     .modelName(modelName())
                     .apiKey(apiKey())
                     .temperature(0.0)
+                    .maxRetries(1)
                     .logRequests(true)
                     .logResponses(true)
                     .build();
@@ -154,5 +159,15 @@ class XinferenceToolChatModelIT extends AbstractXinferenceToolsChatModelInfrastr
     @Override
     public String adaptPrompt1(String prompt) {
         return prompt + CALL_ONE_TOOL_AT_A_TIME;
+    }
+
+    @Override
+    public String adaptPrompt2(String prompt) {
+        return prompt + ALWAYS_USE_AVAILABLE_TOOLS_TO_CALCULATE_THE_ANSWER;
+    }
+
+    @Override
+    public String adaptPrompt3(String prompt) {
+        return prompt + ALWAYS_USE_AVAILABLE_TOOLS_TO_CALCULATE_THE_ANSWER;
     }
 }
