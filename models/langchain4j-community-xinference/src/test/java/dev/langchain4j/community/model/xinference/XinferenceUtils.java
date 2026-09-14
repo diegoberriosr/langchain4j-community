@@ -16,7 +16,8 @@ public class XinferenceUtils {
     // GPU
     //    public static final String XINFERENCE_IMAGE = "xprobe/xinference:latest";
 
-    public static final String CHAT_MODEL_NAME = "gemma-4";
+    public static final String CHAT_MODEL_NAME = "qwen3";
+    public static final String CHAT_MODEL_WITH_TOOLS_NAME = "gemma-4";
     public static final String GENERATE_MODEL_NAME = "qwen2.5-instruct";
     public static final String VISION_MODEL_NAME = "qwen2-vl-instruct";
     public static final String IMAGE_MODEL_NAME = "sd3-medium";
@@ -28,8 +29,13 @@ public class XinferenceUtils {
             put(
                     CHAT_MODEL_NAME,
                     String.format(
-                            "xinference launch --model-engine llama.cpp --model-name %s --size-in-billions 2 --model-format ggufv2 --quantization Q4_K_M",
+                            "xinference launch --model-engine Transformers --model-name %s --size-in-billions 0_6 --model-format pytorch --quantization none",
                             CHAT_MODEL_NAME));
+            put(
+                    CHAT_MODEL_WITH_TOOLS_NAME,
+                    String.format(
+                            "xinference launch --model-engine llama.cpp --model-name %s --size-in-billions 4 --model-format ggufv2 --quantization Q8_0",
+                            CHAT_MODEL_WITH_TOOLS_NAME));
             put(
                     GENERATE_MODEL_NAME,
                     String.format(
